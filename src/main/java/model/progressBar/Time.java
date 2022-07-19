@@ -7,12 +7,12 @@ import javax.swing.JLabel;
 
 public class Time
 {
-	private double time = 0;
+	private double millis = 0;
 	private boolean visible = false;
 	
-	public Time(double seconds)
+	public Time(double millis)
 	{
-		this.time = seconds;
+		this.millis = millis;
 	}
 	
 	public Time()
@@ -20,9 +20,9 @@ public class Time
 		this(0);
 	}
 	
-	public Time(double hour, double seconds)
+	public Time(double hour, double minutes)
 	{
-		this.time = hour*3600 + seconds*60;
+		this.millis = (hour*3600 + minutes*60) * 1000;
 	}
 	
 	public Time(double time, String type)
@@ -30,16 +30,16 @@ public class Time
 		switch(type.toUpperCase().charAt(0))
 		{
 		case 'S':
-			this.time = time;
+			this.millis = time*1000;
 			break;
 		case 'M':
-			this.time = time*60;
+			this.millis = time*60*1000;
 			break;
 		case 'H':
-			this.time = time*3600;
+			this.millis = time*3600*1000;
 			break;
 		default:
-			this.time = time;
+			this.millis = time;
 			break;
 		}
 	}
@@ -55,7 +55,7 @@ public class Time
 	
 	public String toMinutesSeconds()
 	{
-		return toMinutesSeconds(0, time);
+		return toMinutesSeconds(0, millis / 1000);
 	}
 	
 	public static String toMinutesSeconds(double hours, double seconds)
@@ -94,29 +94,43 @@ public class Time
 	
 	public double toMillis()
 	{
-		return time*1000;
+		return millis;
 	}
 	
 	public double toSeconds()
 	{
-		return time;
+		return millis / 1000;
 	}
 	
-	public void setTime(double seconds)
+	public void setTime(double millis)
 	{
-		this.time = seconds;
+		this.millis = millis;
 	}
-	
-	public void remove(double seconds)
+
+	public void setTime(Time tm)
 	{
-		this.time -= seconds;
-		if(this.time < 0)
-			this.time = 0;
+		this.millis = tm.toMillis();
 	}
 	
-	public void add(double seconds)
+	public void remove(double millis)
 	{
-		this.time += seconds;
+		System.out.println(this.millis+" "+millis);
+		this.millis -= millis;
+		if(this.millis < 0)
+			this.millis = 0;
 	}
 	
+	public void remove(Time time) {
+		remove(time.toMillis());
+	}
+
+	public void add(double millis)
+	{
+		this.millis += millis;
+	}
+	
+	public void add(Time time) {
+		add(time.toMillis());
+	}
+
 }

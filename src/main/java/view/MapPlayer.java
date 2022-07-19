@@ -27,7 +27,7 @@ public class MapPlayer extends JPanel {
     private Animation animation;
 
     public MapPlayer(Map map) {
-        this.animation = new Animation(map, new Time(1, "m"));
+        this.animation = new Animation(map, new Time(10, "s"));
         this.mapView = new MapView(this, map);
         this.mapToolBar = new MapToolBar();
         this.progressBar = new ProgressBar(this, 0, Color.BLUE);
@@ -47,7 +47,8 @@ public class MapPlayer extends JPanel {
         private JLabel x = new JLabel("0"),
                        y = new JLabel("0");
 
-        private JButton addLocation = new JButton("Add location");
+        private JButton addLocation  = new JButton("Add location"),
+                        addDistance = new JButton("Add distance");
 
         public MapToolBar() {
             JPanel pan = new JPanel();
@@ -60,12 +61,20 @@ public class MapPlayer extends JPanel {
             setLayout(new FlowLayout());
             add(pan);
             add(addLocation);
+            add(addDistance);
 
             addLocation.addActionListener(e -> {
                 if(MovableObjView.selectObj == null)
                     return;
                 MovableObject obj = MovableObjView.selectObj.getMovableObject();
                 animation.addGotoAction(progressBar.getTime(), obj, obj.getLocation());
+            });
+
+            addDistance.addActionListener(e -> {
+                if(MovableObjView.selectObj == null)
+                    return;
+                MovableObject obj = MovableObjView.selectObj.getMovableObject();
+                animation.addDistanceAction(progressBar.getTime(), obj, obj.getLocation());
             });
 
         }

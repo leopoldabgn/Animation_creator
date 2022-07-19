@@ -24,7 +24,10 @@ public class ProgressBar extends JPanel implements ActionListener
 
 	private MapPlayer mapPlayer;
 
-	private Timer tm = new Timer(1000, this);
+	private Timer tm = new Timer(1, this);
+	private double framRate = 50, // 40, 50, 100...
+				   millisBetweenFrames = 1000 / framRate,
+				   prevTime = System.currentTimeMillis();
 	private Time preview, time, duration;
 	private int mouseX = 0;
 	private Cursor cursor;
@@ -35,6 +38,7 @@ public class ProgressBar extends JPanel implements ActionListener
 	public ProgressBar(MapPlayer mapPlayer, int cursorX, Color color) {
 		this(mapPlayer.getAnimation().getDurationTime(), cursorX, color);
 		this.mapPlayer = mapPlayer;
+		this.setFrameRate(mapPlayer.getAnimation().getFrameRate());
 	}
 
 	public ProgressBar(Time duration, int cursorX, Color color)
@@ -139,6 +143,7 @@ public class ProgressBar extends JPanel implements ActionListener
 					mouseX = e.getX();
 					cursor.setX(e.getX()-cursor.getSize()/2);
 					time.setTime(evalTime());
+					mapPlayer.applyObjectsActions(time);
 					repaint();
 				}
 			}
@@ -163,18 +168,21 @@ public class ProgressBar extends JPanel implements ActionListener
 		g.fillRect((int)bar.getX(), (int)bar.getY(), cursor.getX(), (int)bar.getHeight());
 		
 		cursor.draw(g);
-		preview.setTime(evalTime(mouseX-(int)bar.getX(), (int)bar.getWidth(), duration));
+		preview.setTime(evalTime(mouseX-(int)bar.getX(), (int)bar.getWidth(), duration, millisBetweenFrames));
 		preview.draw(mouseX, (int)bar.getY()-15, g);
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e)
 	{
-		if(time.toSeconds() >= duration.toSeconds())
+		if((System.currentTimeMillis() - prevTime) < millisBetweenFrames)
+			return;
+		prevTime = System.currentTimeMillis();
+		if(time.toMillis() >= duration.toMillis())
 			pause = true;
 		if(pause)
 			return;
-		time.add(1);
+		time.add(millisBetweenFrames); // Example : 50fps -> 20 millis, 40fps -> 25 millis
 		if(mapPlayer != null) {
 			mapPlayer.applyObjectsActions(time);
 		}
@@ -184,7 +192,8 @@ public class ProgressBar extends JPanel implements ActionListener
 	
 	public static int evalPosition(int w, Time time, Time duration)
 	{
-		double coeff = ((double)time.toSeconds()/(double)duration.toSeconds());
+
+		double coeff = time.toMillis() / duration.toMillis();
 		return (int)(w*coeff);
 	}
 	
@@ -193,15 +202,17 @@ public class ProgressBar extends JPanel implements ActionListener
 		return evalPosition((int)bar.getWidth(), time, duration);
 	}
 	
-	public static int evalTime(int position, int w, Time duration)
+	public static int evalTime(int position, int w, Time duration, double millisBetweenFrames)
 	{
 		double coeff = (double)position/(double)w;
-		return (int)(coeff*duration.toSeconds());
+		int tm = (int)(coeff * duration.toMillis());
+		int modulo = tm % (int)millisBetweenFrames;
+		return tm - modulo;
 	}
 	
 	public int evalTime()
 	{
-		return evalTime(cursor.getX(), (int)bar.getWidth(), duration);
+		return evalTime(cursor.getX(), (int)bar.getWidth(), duration, millisBetweenFrames);
 	}
 	
 	public void pause()
@@ -214,19 +225,27 @@ public class ProgressBar extends JPanel implements ActionListener
 		pause = false;
 	}
 	
-	public void moveBack(long seconds)
+	public void moveBack(double millis) {
+		moveBack(new Time(millis));
+	}
+
+	public void moveBack(Time tm)
 	{
-		time.remove(seconds);
+		time.remove(tm);
 		cursor.setX(evalPosition());
 		repaint();
 	}
 	
-	public void moveForward(long seconds)
+	public void moveForward(double millis) {
+		moveForward(new Time(millis));
+	}
+
+	public void moveForward(Time tm)
 	{
-		if(time.toSeconds()+seconds > duration.toSeconds())
-			time.setTime(duration.toSeconds());
+		if(time.toMillis() + tm.toMillis() > duration.toMillis())
+			time.setTime(duration);
 		else
-			time.add(seconds);
+			time.add(tm);
 		cursor.setX(evalPosition());
 		repaint();
 	}
@@ -241,6 +260,11 @@ public class ProgressBar extends JPanel implements ActionListener
 
 	public Time getTime() {
 		return time;
+	}
+
+	public void setFrameRate(long framRate) {
+		this.framRate = framRate;
+		this.millisBetweenFrames = 1000 / framRate;
 	}
 	
 }

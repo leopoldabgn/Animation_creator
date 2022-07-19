@@ -52,16 +52,16 @@ public class Button extends JPanel
 					pB.reset();
 					break;
 				case "left":
-					pB.moveBack(1);
+					pB.moveBack(20);
 					break;
 				case "right":
-					pB.moveForward(1);
+					pB.moveForward(20);
 					break;
 				case "speedLeft":
-					pB.moveBack(60);
+					pB.moveBack(60_000);
 					break;
 				case "speedRight":
-					pB.moveForward(60);
+					pB.moveForward(60_000);
 					break;
 				}
 				repaint();

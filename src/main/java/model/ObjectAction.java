@@ -26,6 +26,10 @@ public abstract class ObjectAction {
             object.setLocation(pos);
         }
 
+        public Point getGotoPos() {
+            return pos;
+        }
+
     }
 
     public class GrowAction extends ObjectAction {
